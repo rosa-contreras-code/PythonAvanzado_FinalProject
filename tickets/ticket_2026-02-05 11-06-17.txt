@@ -1,9 +1,9 @@
 ============================ TICKET DE COMPRA ============================
-Fecha: 2026-02-04 01:21:21
+Fecha: 2026-02-05 11:06:17
 Cliente: Rosa Contreras
 --------------------------------------------------------------------------
-Producto: Hamburguesa clásica de res, Cantidad: 3, Precio unitario: $110.0
+Producto: Hamburguesa clásica de res, Cantidad: 2, Precio unitario: $110.0
 --------------------------------------------------------------------------
-Total: $330.0
+Total: $220.0
 ==========================================================================
 Gracias por su compra, vuelva pronto

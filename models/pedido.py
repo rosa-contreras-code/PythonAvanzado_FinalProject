@@ -2,9 +2,9 @@
 Módulo pedido
 Contiene la clase Pedido para la gestión de pedidos del sistema.
 """
-from cliente import Cliente
-from menu import Menu
-from utils import Utils
+from models.cliente import Cliente
+from models.menu import Menu
+from utils.utils import Utils
 from database.bd import BD
 import sqlite3
 import os
@@ -38,7 +38,8 @@ class Pedido:
                 print("--------------------------------------------------")
                 print("Pedidos:")
                 for id, cliente, producto, cantidad, precio in pedidos:
-                    print("ID: {}, Cliente: {}, Producto: {}, Cantidad: {}, Total: {}".format(id, cliente, producto, cantidad, precio))
+                    print("ID: {}, Cliente: {}, Producto: {}, Cantidad: {}, Total: {}"
+                          .format(id, cliente, producto, cantidad, precio))
             else:
                 print("No hay pedidos registrados")
 
@@ -157,7 +158,8 @@ class Pedido:
                 ticket.write(f"Fecha: {fecha}\n")
                 ticket.write("Cliente: {}\n".format(pedido["cliente"]))
                 ticket.write("--------------------------------------------------------------------------\n")
-                ticket.write("Producto: {}, Cantidad: {}, Precio unitario: ${}\n".format(pedido["producto"], pedido["cantidad"], pedido["precioUnitario"]))
+                ticket.write("Producto: {}, Cantidad: {}, Precio unitario: ${}\n"
+                             .format(pedido["producto"], pedido["cantidad"], pedido["precioUnitario"]))
                 ticket.write("--------------------------------------------------------------------------\n")
                 ticket.write("Total: ${}\n".format(pedido["total"]))
                 ticket.write("==========================================================================\n")

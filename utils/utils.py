@@ -1,6 +1,8 @@
 """Clase general"""
 class Utils():
-    def ingresarId(self, mensaje):
+
+    @staticmethod
+    def ingresarId(mensaje):
         """
         Solicita y retorna el id 
         """
