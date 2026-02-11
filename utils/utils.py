@@ -10,9 +10,11 @@ class Utils():
         id_incorrecto = True
         while id_incorrecto:
             try:
-                id = int(input(mensaje))
+                id = input(mensaje)
+                if id == "esc" : return None
+                id = int(id)
                 id_incorrecto = False
             except Exception as e:
                 print("Error al capturar el id: {}".format(e))
-                print("Intente de nuevo ingresar el id \n")
+                print("Intente de nuevo ingresar el id")
         return id

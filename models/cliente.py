@@ -15,14 +15,7 @@ class Cliente:
         """
         Inicializa la estructura de datos para almacenar clientes
         """
-        # self.clientes = {}
-        "Verifica la existencia de la tabla"
         self.bd = BD('happyburger.db')
-        # if self.bd.verificarBaseDatosExiste():
-        #     pass
-        # else:
-        #     self.bd.crearBaseDatos()
-        #     self.bd.crearTablaClientes()
     
     def mostrarListaClientes(self):
         """
@@ -45,7 +38,6 @@ class Cliente:
         except sqlite3.Error as e:
             print("Error al intentar obtener la lista de clientes: {}".format(e))
         finally:
-            print("--------------------------------------------------")
             if conexion:
                 cursor.close()
                 conexion.close()
@@ -74,23 +66,52 @@ class Cliente:
         except Exception as e:
             print("Error al buscar el cliente: {}".format(e))
         finally:
-            print("--------------------------------------------------")
             if conexion:
                 cursor.close()
                 conexion.close()
 
+    def buscarClientePorNombre(self, nombre_cliente):
+        """
+        Busca y regresa un cliente por su nombre
+        """
+        try: 
+            conexion = self.bd.abrirConexion()
+            cursor = conexion.cursor()
+            cursor.execute("SELECT * FROM clientes WHERE nombre = ?", (nombre_cliente,))
+            cliente = cursor.fetchone()
+            if not cliente:
+                print(f"No se encontró un cliente con el nombre {nombre_cliente}")
+                return cliente
+
+            return {
+                "id": cliente[0],
+                "clave": cliente[1],
+                "nombre": cliente[2],
+                "direccion": cliente[3],
+                "correo": cliente[4],
+                "telefono": cliente[5]
+            }
+        except Exception as e:
+            print("Error al buscar el cliente: {}".format(e))
+        finally:
+            if conexion:
+                cursor.close()
+                conexion.close()
 
     def agregarCliente(self):
         """
         Agrega un nuevo cliente al sistema
         """
         try:
+            conexion = self.bd.abrirConexion()
+            cursor = conexion.cursor()
             print("--------------------------------------------------")
             print("Nuevo cliente")
             cliente = self.ingresarDatosCliente()
-
-            conexion = self.bd.abrirConexion()
-            cursor = conexion.cursor()
+            if not cliente:
+                print("Operación cancelada")
+                return
+            
             sql = '''INSERT INTO clientes(clave, nombre, direccion, correo_electronico, telefono)
             VALUES(?,?,?,?,?)'''
             cursor.execute(sql, (cliente["clave"], cliente["nombre"], cliente["direccion"], cliente["correo_electronico"], cliente["telefono"]))
@@ -114,10 +135,20 @@ class Cliente:
             conexion = self.bd.abrirConexion()
             cursor = conexion.cursor()
             self.mostrarListaClientes()
-            id_cliente = Utils.ingresarId("Ingrese el id del cliente a editar: ")
+            print("--------------------------------------------------")
+            id_cliente = Utils.ingresarId("Ingrese el id del cliente a editar (para cancelar teclee la palabra esc): ")
+            if not id_cliente:
+                print("Operación cancelada")
+                return
+            
             if not self.buscarCliente(id_cliente):
                 return
+            
             cliente = self.ingresarDatosCliente()
+            if not cliente:
+                print("Operación cancelada")
+                return
+            
             sql ="UPDATE clientes SET clave = ?, nombre = ?, direccion = ?, correo_electronico = ?, telefono = ? WHERE id = ?"
             valores =  (cliente["clave"], cliente["nombre"], cliente["direccion"], cliente["correo_electronico"], cliente["telefono"], id_cliente)
             cursor.execute(sql, valores)
@@ -128,7 +159,6 @@ class Cliente:
         except Exception as e:
             print("Error:".format(e))
         finally:
-            print("--------------------------------------------------")
             if conexion:
                 cursor.close()
                 conexion.close()
@@ -141,9 +171,15 @@ class Cliente:
             conexion = self.bd.abrirConexion()
             cursor = conexion.cursor()
             self.mostrarListaClientes()
-            id_cliente = Utils.ingresarId("Ingrese el id del cliente a eliminar: ")
+            print("--------------------------------------------------")
+            id_cliente = Utils.ingresarId("Ingrese el id del cliente a eliminar (para cancelar teclee la palabra esc): ")
+            if not id_cliente:
+                print("Operación cancelada")
+                return
+            
             if not self.buscarCliente(id_cliente):
                 return
+            
             sql = '''DELETE FROM clientes WHERE id = ?'''
             cursor.execute(sql, (id_cliente,))
             conexion.commit()
@@ -162,11 +198,17 @@ class Cliente:
         datosIncorrectos = True
         while datosIncorrectos:
             try:
+                print("Datos del cliente (para cancelar teclee la palabra esc)")
                 clave = input("Ingrese la clave del cliente: ")
+                if clave == "esc": return {}
                 nombre = input("Ingrese en nombre del cliente: ")
+                if nombre == "esc": return {}
                 direccion = input("Ingrese la dirección del cliente: ")
+                if direccion == "esc": return {}
                 correo_electronico = input("Ingrese la dirección de correó electrónico del cliente: ")
+                if correo_electronico == "esc": return {}
                 telefono = input("Ingrese el teléfono del cliente: ")
+                if correo_electronico == "esc": return {}
                 datosIncorrectos = False
             except Exception as e:
                 print('Error al capturar un dato: {}'.format(e))
@@ -178,18 +220,3 @@ class Cliente:
             "correo_electronico": correo_electronico,
             "telefono": telefono
         }
-
-    # def ingresarId(self, mensaje):
-    #     """
-    #     Solicita y retorna el id de un cliente
-    #     """
-    #     id_cliente = 0
-    #     id_incorrecto = True
-    #     while id_incorrecto:
-    #         try:
-    #             id_cliente = int(input(mensaje))
-    #             id_incorrecto = False
-    #         except Exception as e:
-    #             print("Error al capturar el id: {}".format(e))
-    #             print("Intente de nuevo ingresar el id \n")
-    #     return id_cliente

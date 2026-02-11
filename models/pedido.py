@@ -19,7 +19,6 @@ class Pedido:
         """
         Inicializa la estructura de datos para almacenar pedidos
         """
-        # self.pedidos = {}
         self.bd = BD('happyburger.db')
         self.cliente = Cliente()
         self.menu = Menu()
@@ -29,10 +28,7 @@ class Pedido:
         Regresa una lista de pedidos registrados
         """
         try: 
-            conexion = self.bd.abrirConexion()
-            cursor = conexion.cursor()
-            cursor.execute("SELECT * FROM pedido")
-            pedidos = cursor.fetchall()
+            pedidos = self.obtenerPedidos()
 
             if len(pedidos) > 0:
                 print("--------------------------------------------------")
@@ -44,9 +40,21 @@ class Pedido:
                 print("No hay pedidos registrados")
 
         except sqlite3.Error as e:
+            print("Error al intentar mostrar los pedidos: {}".format(e))
+
+    def obtenerPedidos(self):
+        """
+        Retorna una lista de pedidos registrados
+        """
+        try: 
+            conexion = self.bd.abrirConexion()
+            cursor = conexion.cursor()
+            cursor.execute("SELECT * FROM pedido")
+            pedidos = cursor.fetchall()
+            return pedidos
+        except sqlite3.Error as e:
             print("Error al intentar obtener los pedidos: {}".format(e))
         finally:
-            print("--------------------------------------------------")
             if conexion:
                 cursor.close()
                 conexion.close()
@@ -74,7 +82,23 @@ class Pedido:
         except Exception as e:
             print("Error al buscar el pedido: {}".format(e))
         finally:
-            print("--------------------------------------------------")
+            if conexion:
+                cursor.close()
+                conexion.close()
+    
+    def filtrarPedidosPorID(self, id_pedido):
+        """
+        Filtra los registros por id
+        """
+        try: 
+            conexion = self.bd.abrirConexion()
+            cursor = conexion.cursor()
+            cursor.execute("SELECT * FROM pedido WHERE id like ?", ('%' + id_pedido + '%',))
+            pedidos = cursor.fetchall()
+            return pedidos
+        except sqlite3.Error as e:
+            print("Error al intentar obtener los pedidos: {}".format(e))
+        finally:
             if conexion:
                 cursor.close()
                 conexion.close()
@@ -84,21 +108,35 @@ class Pedido:
         Crea un nuevo pedido
         """
         try:
+            print("--------------------------------------------------")
             print("Nuevo Pedido")
+            print("(para cancelar teclee la palabra esc)")
             conexion = self.bd.abrirConexion()
             cursor = conexion.cursor()
 
             self.cliente.mostrarListaClientes()
+            print("--------------------------------------------------")
             id_cliente = Utils.ingresarId("Ingrese el id del cliente: ")
+            if not id_cliente:  
+                print("Operación cancelada")
+                return
             cliente = self.cliente.buscarCliente(id_cliente)
             if not cliente: return
 
             self.menu.mostrarListaMenu()
+            print("--------------------------------------------------")
             id_menu = Utils.ingresarId("Ingrese el id del producto: ")
+            if not id_menu:  
+                print("Operación cancelada")
+                return
             producto = self.menu.buscarProducto(id_menu)
-            if not producto: return
+            if not producto : return
 
-            cantidad = int(input("Ingrese la cantidad: "))
+            cantidad = input("Ingrese la cantidad: ")
+            if cantidad == "esc":  
+                print("Operación cancelada")
+                return
+            cantidad = int(cantidad)
             total = producto["precio"] * cantidad
 
             sql = '''INSERT INTO pedido(cliente, producto, cantidad, precio)
@@ -131,7 +169,11 @@ class Pedido:
             conexion = self.bd.abrirConexion()
             cursor = conexion.cursor()
             self.mostrarListaPedidos()
-            id_pedido = Utils.ingresarId("Ingrese el id del pedido a cancelar: ")
+            print("--------------------------------------------------")
+            id_pedido = Utils.ingresarId("Ingrese el id del pedido a cancelar:  (para salir teclee la palabra esc)")
+            if not id_pedido:
+                print("Operación cancelada")
+                return
             if not self.buscarPedido(id_pedido):
                 return
             sql = '''DELETE FROM pedido WHERE id = ?'''
@@ -152,8 +194,9 @@ class Pedido:
         try:
             os.makedirs("tickets", exist_ok=True)
             fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            nombre_archivo = f"tickets/ticket_{fecha.replace(':','-')}.txt"
-            with open(nombre_archivo, 'w', encoding="utf-8") as ticket:
+            nombre_archivo = f"ticket_{fecha.replace(':','-')}.txt"
+            ruta_archivo = f"tickets/{nombre_archivo}"
+            with open(ruta_archivo, 'w', encoding="utf-8") as ticket:
                 ticket.write("============================ TICKET DE COMPRA ============================\n")
                 ticket.write(f"Fecha: {fecha}\n")
                 ticket.write("Cliente: {}\n".format(pedido["cliente"]))
@@ -164,7 +207,7 @@ class Pedido:
                 ticket.write("Total: ${}\n".format(pedido["total"]))
                 ticket.write("==========================================================================\n")
                 ticket.write("Gracias por su compra, vuelva pronto\n")
-            print("Ticket generado correctamente")
+            print("Ticket generado correctamente: {}".format(nombre_archivo))
         except Exception as e:
             print("Error: {}".format(e))
 

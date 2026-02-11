@@ -5,6 +5,36 @@ from models.cliente import Cliente
 from models.menu import Menu
 from models.pedido import Pedido
 from database.bd import BD
+from flask import Flask, render_template, request
+
+app = Flask(__name__, template_folder="templates")
+
+@app.route('/', methods=["GET"])
+def obtenerPedidos():
+    try:
+        id_pedido = request.args.get("id_pedido")
+        pedido = Pedido()
+        if id_pedido:
+            pedidos = pedido.filtrarPedidosPorID(id_pedido)
+            if not pedidos:
+                pedidos = []
+        else:
+            pedidos = pedido.obtenerPedidos()
+    except Exception as e:
+        print("Error: {}".format(e) )
+    return render_template("index.html", pedidos = pedidos, filtro = id_pedido)
+
+
+@app.route('/pedidos/<int:id>')
+def obtenerPedido(id):
+    pedido = Pedido()
+    oPedido = pedido.buscarPedido(id)
+    menu = Menu()
+    oProducto = menu.buscarProductoPorNombre(oPedido["producto"])
+    cliente = Cliente()
+    oCliente = cliente.buscarClientePorNombre(oPedido["cliente"])
+    return render_template("pedido.html", pedido = oPedido, producto = oProducto, cliente = oCliente)
+
 
 def inicializarBaseDatos():
     """
@@ -129,3 +159,7 @@ def seleccionarOpcion():
     
 inicializarBaseDatos()
 seleccionarOpcion()
+
+# if __name__ == '__main__':
+#     inicializarBaseDatos()
+#     app.run(debug=True)
